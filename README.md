@@ -1,206 +1,138 @@
-# assignment-4-predictive-
-PDF Estimation Using GAN
-Overview
+# assignment-4-predictive
+# 📊 PDF Estimation Using GAN
 
-This project explores how an unknown probability density function (PDF) can be learned directly from data samples, without assuming any predefined analytical or parametric form. To achieve this, a Generative Adversarial Network (GAN) is employed to implicitly model the distribution of a transformed random variable.
+## 📌 Overview
 
-Real-world Indian air quality data is used for this task. Specifically, NO₂ concentration values are selected, transformed using a nonlinear function, and then modeled using a GAN. The goal is to demonstrate that generative models can effectively approximate complex, non-Gaussian probability distributions purely from data.
+This project focuses on learning an **unknown probability density function (PDF)** directly from data samples, without assuming any analytical or parametric form. A **Generative Adversarial Network (GAN)** is used to implicitly model the probability distribution of a transformed random variable.
 
-Dataset Description
+Real-world **Indian air quality data** is used for this task. The NO₂ concentration values are first transformed using a nonlinear function and then modeled using a GAN. The objective is to demonstrate that generative models can effectively learn complex, non-Gaussian distributions purely from data.
 
-Dataset: Indian Air Quality Dataset
+---
 
-Source: https://www.kaggle.com/datasets/shrutibhargava94/india-air-quality-data
+## 📁 Dataset Description
 
-The NO₂ concentration feature is chosen because it is continuous, real-valued, and exhibits a non-Gaussian distribution, making it well suited for density estimation using generative models.
+- **Dataset:** Indian Air Quality Dataset  
+- **Source:** https://www.kaggle.com/datasets/shrutibhargava94/india-air-quality-data  
 
-The dataset initially contains 16,233 missing values in the NO₂ column. These missing entries are removed during preprocessing to ensure clean and reliable training data.
+The **NO₂ concentration** feature is selected because it is continuous, real-valued, and exhibits a non-Gaussian distribution, making it suitable for density estimation using generative models.
 
-Methodology
-Step 1: Data Transformation
+The dataset contains **16,233 missing values** in the NO₂ column, which are removed during preprocessing before further analysis.
 
-Each NO₂ concentration value 
-𝑥
-x is transformed into a new variable 
-𝑧
-z using the nonlinear transformation:
+---
 
-𝑧
-=
-𝑥
-+
-𝑎
-𝑟
-⋅
-sin
-⁡
-(
-𝑏
-𝑟
-⋅
-𝑥
-)
-z=x+a
-r
-	​
+## ⚙️ Methodology
 
-⋅sin(b
-r
-	​
+### 🔹 Step 1: Data Transformation
 
-⋅x)
+Each NO₂ concentration value `x` is transformed into a new variable `z` using the following nonlinear function:
+
+z = x + a_r · sin(b_r · x)
 
 Where:
+- `r` is the university roll number  
+- `a_r = 0.5 × (r mod 7)` → **Value used: 2.0**  
+- `b_r = 0.3 × (r mod 5 + 1)` → **Value used: 0.3**
 
-𝑟
-r is the university roll number
+This transformation introduces nonlinearity into the data, increasing the complexity of the distribution and making the PDF estimation task more challenging.
 
-𝑎
-𝑟
-=
-0.5
-×
-(
-𝑟
- 
-m
-o
-d
- 
-7
-)
-a
-r
-	​
+---
 
-=0.5×(rmod7) → Calculated value: 2.0
+### 🔹 Step 2: GAN-Based PDF Learning
 
-𝑏
-𝑟
-=
-0.3
-×
-(
-𝑟
- 
-m
-o
-d
- 
-5
-+
-1
-)
-b
-r
-	​
+#### 🧠 GAN Architecture
 
-=0.3×(rmod5+1) → Calculated value: 0.3
+The GAN consists of two neural networks trained adversarially:
 
-This transformation introduces nonlinearity into the data, increasing its complexity and making the density estimation task more challenging and realistic.
+##### Generator
+- Takes random noise sampled from a normal distribution
+- Produces synthetic samples of the transformed variable `z`
+- Implemented as a fully connected neural network
+- Uses ReLU activation functions
+- Outputs a single scalar value
 
-Step 2: GAN-Based PDF Learning
-GAN Architecture
+The generator aims to produce samples that closely resemble the real data.
 
-The model consists of two neural networks trained in an adversarial framework:
+##### Discriminator
+- Takes a single scalar value as input
+- Outputs a probability indicating whether the input is real or generated
+- Implemented as a fully connected neural network
+- Uses a sigmoid activation function in the final layer
 
-Generator
+The discriminator’s goal is to correctly distinguish real samples from generated ones.
 
-Takes random noise sampled from a normal distribution
+Both networks are trained simultaneously in an adversarial manner, allowing the generator to implicitly learn the underlying distribution of `z`.
 
-Outputs synthetic samples of the transformed variable 
-𝑧
-z
+---
 
-Implemented as a fully connected neural network
+## 🏋️ Training Details
 
-Uses ReLU activation functions
+- **Loss Function:** Binary Cross-Entropy Loss  
+- **Optimizer:** Adam  
 
-Produces a single scalar output
+### Training Strategy
+- The discriminator is trained on both real samples and generator-produced samples.
+- The generator is trained to maximize the discriminator’s belief that generated samples are real.
 
-The generator’s objective is to produce samples that are indistinguishable from real data.
+Training continues until both networks reach a stable equilibrium.
 
-Discriminator
+---
 
-Takes a single scalar value as input
+## 📈 PDF Estimation from Generated Samples
 
-Outputs a probability indicating whether the input is real or generated
+After training:
+1. A large number of samples are generated using the trained generator.
+2. The probability density function is estimated using:
+   - **Histogram-based density estimation**
 
-Implemented using a fully connected neural network
+This estimated PDF represents the GAN’s learned approximation of the true distribution of the transformed variable `z`.
 
-Uses a sigmoid activation function in the final layer
+---
 
-The discriminator’s role is to correctly classify real and generated samples.
+## 🧪 Results
 
-Both networks are trained simultaneously: the discriminator improves its classification ability, while the generator learns to fool the discriminator. Over time, this adversarial process enables the generator to implicitly learn the underlying probability distribution of 
-𝑧
-z.
+A histogram comparison between the **real data distribution** and the **GAN-generated distribution** shows a strong overlap in shape and range.
 
-Training Details
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a8a7ee76-29be-4351-91c4-b3e68b94f078" width="700">
+</p>
 
-Loss Function: Binary Cross-Entropy Loss
+---
 
-Optimizer: Adam
+## 🔍 Observations
 
-Training Strategy:
+### 1️⃣ Mode Coverage
 
-The discriminator is trained on both real samples and generator-produced samples.
+The generator successfully captures the main regions where the real data is concentrated. The generated samples span the same major value ranges as the real samples, indicating good mode coverage.
 
-The generator is trained to maximize the discriminator’s confidence that generated samples are real.
+---
 
-Training continues until both networks reach a stable equilibrium, indicating balanced adversarial learning.
+### 2️⃣ Training Stability
 
-PDF Estimation from Generated Samples
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/abe19122-4e69-4905-babf-a161adc53789" width="500">
+</p>
 
-After training is complete:
+#### Discriminator Loss
+- Remains approximately between **1.3 and 1.5**
+- Does not collapse to zero or diverge
+- Indicates balanced discriminator learning
 
-A large number of samples are generated using the trained generator.
+#### Generator Loss
+- Fluctuates between approximately **0.6 and 1.0**
+- Expected behavior in adversarial training
+- No signs of instability or collapse
 
-The probability density function is estimated using:
+Overall, the loss curves remain bounded and oscillate smoothly, indicating stable GAN training.
 
-Histogram-based density estimation
+---
 
-This histogram represents the GAN’s learned approximation of the true PDF of the transformed variable 
-𝑧
-z.
+### 3️⃣ Quality of Generated Distribution
 
-Results
+The histogram comparison shows that the generated distribution closely matches the real data distribution in terms of shape and range. Minor differences in peak heights and tail behavior are observed, which are expected. Overall, the GAN effectively learns the underlying probability distribution without relying on explicit parametric assumptions.
 
-A histogram comparison between the real data distribution and the GAN-generated distribution shows strong alignment:
+---
 
-(Histogram comparing real PDF and GAN-generated PDF)
+## ✅ Conclusion
 
-Observations
-1. Mode Coverage
+This project demonstrates that GANs can be effectively used for **probability density estimation** of complex, non-Gaussian data distributions. By learning directly from transformed real-world data, the GAN successfully captures the core structure of the underlying distribution, validating its suitability for implicit density modeling tasks.
 
-The generator successfully captures the main regions where real data points are concentrated. The generated samples span similar ranges and cover the dominant modes of the real distribution, indicating effective mode coverage.
-
-2. Training Stability
-
-(Generator and Discriminator loss plots)
-
-Discriminator Loss
-
-Remains approximately between 1.3 and 1.5
-
-Does not collapse to zero (which would indicate an overly powerful discriminator)
-
-Does not diverge to excessively large values
-
-This suggests that the discriminator maintains a balanced learning pace.
-
-Generator Loss
-
-Fluctuates between approximately 0.6 and 1.0
-
-Such oscillations are typical in adversarial training
-
-No signs of collapse or unbounded growth are observed
-
-Overall, both losses remain bounded and oscillate smoothly, indicating stable and well-balanced GAN training.
-
-3. Quality of Generated Distribution
-
-The quality of the learned distribution is evaluated by visually comparing the histograms of real and generated samples. Both distributions exhibit a similar overall shape and are concentrated within the same value ranges. While minor differences are observed in peak height and tail behavior, the generator successfully captures the core structure of the data.
-
-This demonstrates that the GAN is capable of producing realistic samples and effectively learning the underlying probability distribution without relying on explicit parametric assumptions.
